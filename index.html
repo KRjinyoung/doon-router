@@ -4,86 +4,90 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DOON</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f2f4f7; --card: #ffffff; --text: #1a1a1a; --muted: #6b7280;
-    --line: #e3e7ee; --brand: #1f5fa8; --brand-dark: #163f70; --tint: #eef4ff;
-    --warn-bg: #fff6e5; --warn: #8a5a00;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f1420; --card: #171e2c; --text: #e8ecf3; --muted: #9aa4b5;
-      --line: #273145; --brand: #5b9be0; --brand-dark: #3f7fc4; --tint: #1b2a42;
-      --warn-bg: #3a2c10; --warn: #f0c46a;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
-    line-height: 1.5;
-  }
-  header {
-    background: #1f5fa8; color: #fff; padding: 18px 24px;
-    font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; letter-spacing: .3px;
-  }
-  main { max-width: 640px; margin: 32px auto; padding: 0 16px; }
-  .card { background: var(--card); padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-  h1 { font-size: 18px; margin: 0 0 4px; }
-  .sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
-  .status { padding: 14px 16px; background: var(--tint); font-size: 15px; margin-bottom: 20px; }
-  .status.warn { background: var(--warn-bg); color: var(--warn); }
-  .badge { display: inline-block; font-size: 12px; padding: 1px 6px; margin-left: 6px;
-           border: 1px solid currentColor; vertical-align: 1px; }
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--line); }
-  th { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  [hidden] { display: none !important; }
-  tr.pick td { font-weight: 700; color: var(--brand); }
-  tr.off td { color: var(--muted); }
-  td a { color: var(--brand); font-weight: 600; }
-  .actions { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
-  button, .btn {
-    font: inherit; font-size: 15px; padding: 10px 18px; border: 0; cursor: pointer;
-    background: var(--brand); color: #fff; text-decoration: none;
-  }
-  button:hover, .btn:hover { background: var(--brand-dark); }
-  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
-  details { margin-top: 24px; font-size: 14px; color: var(--muted); }
-  details a { color: var(--brand); margin-right: 10px; }
-  footer { text-align: center; color: var(--muted); font-size: 12px; margin: 24px 0; }
+/* 티켓팅 화면(pop/frontend/login.html)과 같은 규칙 */
+* { box-sizing: border-box; }
+body { margin:0; background:#fafafa; color:#222;
+  font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',sans-serif;
+  -webkit-font-smoothing:antialiased; }
+.brandbar { background:#fff; border-bottom:1px solid #eee; }
+.brandbar .inner { max-width:1120px; margin:0 auto; padding:14px 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.brandline { font-size:14px; color:#777; letter-spacing:-0.2px; }
+.brandline b { font-size:24px; font-weight:700; color:#111; letter-spacing:-0.5px; margin-right:8px; }
+
+.wrap { max-width:460px; margin:0 auto; padding:44px 24px 80px; }
+.h1 { font-size:24px; font-weight:700; color:#111; letter-spacing:-0.6px; text-align:center; margin:0 0 6px; }
+.sub { font-size:13px; color:#888; text-align:center; margin:0 0 28px; line-height:1.6; }
+
+.status { background:#fff; border:1px solid #e8e8e8; border-radius:8px; padding:16px 18px;
+  font-size:14px; color:#444; line-height:1.6; margin-bottom:14px; }
+.status b { color:#111; }
+.status.warn { background:#FFF6EE; border-color:#F5D2AE; color:#B3560A; }
+.badge { display:inline-block; font-size:11px; color:#B3560A; background:#FFF6EE;
+  border:1px solid #F5D2AE; border-radius:3px; padding:0 6px; margin-left:6px; vertical-align:1px; }
+
+.card { background:#fff; border:1px solid #e8e8e8; border-radius:8px; padding:6px 22px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th, td { text-align:left; padding:12px 0; border-bottom:1px solid #f0f0f0; }
+tr:last-child td { border-bottom:0; }
+th { font-size:12.5px; color:#999; font-weight:700; }
+.num { text-align:right; font-variant-numeric:tabular-nums; }
+tr.pick td { font-weight:700; color:#F5821F; }
+tr.off td { color:#aaa; }
+td a { color:#222; font-weight:700; text-decoration:none; }
+td a:hover { color:#F5821F; }
+
+.actions { display:flex; gap:8px; margin-top:16px; }
+.btn { flex:1; display:block; text-align:center; background:#F5821F; color:#fff; border:0;
+  padding:14px 0; font-size:15.5px; font-weight:700; border-radius:3px; cursor:pointer;
+  font-family:inherit; letter-spacing:-0.3px; text-decoration:none; }
+.btn:hover { background:#DE7115; }
+.btn.ghost { flex:0 0 auto; padding:14px 18px; background:#fff; color:#555; border:1px solid #ddd; font-weight:500; }
+.btn.ghost:hover { background:#f5f5f5; }
+[hidden] { display:none !important; }
+#cd { white-space:nowrap; color:#888; }
+
+details { margin-top:22px; font-size:12.5px; color:#888; }
+summary { cursor:pointer; }
+#places { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0; }
+#places a { font-size:12.5px; color:#555; background:#fff; border:1px solid #e8e8e8;
+  border-radius:3px; padding:4px 10px; text-decoration:none; }
+#places a:hover { border-color:#F5821F; color:#F5821F; }
+.note { font-size:11.5px; color:#999; line-height:1.75; margin-top:22px; }
 </style>
 </head>
 <body>
-<header>DOON</header>
-<main>
+<div class="brandbar"><div class="inner">
+  <div class="brandline"><b>DOON</b>티켓팅에 공정을 담다. with KOREN</div>
+</div></div>
+
+<div class="wrap">
+  <h1 class="h1">가까운 PoP로 연결합니다</h1>
+  <p class="sub">브라우저 위치로 가장 가까운 지역 PoP를 고릅니다</p>
+
+  <div id="status" class="status">위치를 확인하는 중입니다…</div>
+
   <div class="card">
-    <h1>가까운 PoP로 연결합니다</h1>
-    <p class="sub">브라우저 위치로 가장 가까운 지역 PoP를 고릅니다. 위치는 이 페이지 안에서만 쓰이고 서버로 보내지 않습니다.</p>
-
-    <div id="status" class="status">위치를 확인하는 중입니다…</div>
-
     <table>
       <thead><tr><th>PoP</th><th class="num">거리</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
-
-    <div class="actions" id="actions" hidden>
-      <a class="btn" id="go" href="#">바로 연결</a>
-      <button class="ghost" id="stop">자동 이동 멈추기</button>
-    </div>
-
-    <details>
-      <summary>다른 위치에서 접속한 것처럼 보기 (시연용)</summary>
-      <p id="places"></p>
-    </details>
   </div>
-</main>
-<footer>K-디지털 챌린지: 넷 챌린지 캠프 시즌13 · Team Doon</footer>
+
+  <div class="actions" id="actions" hidden>
+    <a class="btn" id="go" href="#">바로 연결</a>
+    <button class="btn ghost" id="stop">자동 이동 멈추기</button>
+  </div>
+
+  <details>
+    <summary>다른 지역에서 접속한 것처럼 보기 (시연용)</summary>
+    <p id="places"></p>
+  </details>
+
+  <p class="note">위치는 이 페이지 안에서 거리 계산에만 쓰이고 서버로 전송되지 않습니다.<br>
+  K-디지털 챌린지: 넷 챌린지 캠프 시즌13 · Team Doon</p>
+</div>
 
 <script>
 (async function () {
