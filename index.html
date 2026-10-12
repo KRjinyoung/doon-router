@@ -124,7 +124,7 @@ summary { cursor:pointer; }
 
     const sim = simulated ? '<span class="badge">시뮬레이션</span>' : '';
     $('status').className = 'status';
-    $('status').innerHTML = `${label}${sim} → <b>${pick.name} PoP</b>로 연결합니다<span id="cd"> · <span id="count">3</span>초 후 이동</span>`;
+    $('status').innerHTML = `${label}${sim} → <b>${pick.name} PoP</b>로 연결합니다<span id="cd"><br><span id="count">3</span>초 후 이동합니다</span>`;
     go(pick);
   }
 
@@ -165,11 +165,39 @@ summary { cursor:pointer; }
     manual('이 페이지는 HTTPS에서만 위치를 확인할 수 있습니다.');
     return;
   }
+
+  // 최근 10분 안에 받은 위치가 있으면 바로 쓴다 (이 브라우저에만 저장, 서버로 보내지 않음)
+  const CACHE = 'doon.lastpos', TTL = 10 * 60 * 1000;
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE) || 'null');
+    if (c && Date.now() - c.t < TTL) {
+      render({ lat: c.lat, lon: c.lon }, `최근 확인한 위치(오차 약 ${c.acc}m)`, false);
+      return;
+    }
+  } catch (e) {}
+
+  // 기다리는 동안에도 바로 고를 수 있게 PoP 목록을 먼저 보여준다
+  $('rows').innerHTML = live.map((p) =>
+    `<tr><td><a href="${p.url}">${p.name} PoP</a></td><td class="num">-</td></tr>`).join('');
+  const t0 = Date.now();
+  const tick = setInterval(() => {
+    $('status').textContent = `위치를 확인하는 중입니다… ${Math.floor((Date.now() - t0) / 1000)}초 ` +
+      '(주소창 옆 위치 허용 창을 확인하세요. 기다리지 않고 아래에서 바로 고를 수도 있습니다)';
+  }, 1000);
+
   navigator.geolocation.getCurrentPosition(
-    (pos) => render({ lat: pos.coords.latitude, lon: pos.coords.longitude },
-                    `현재 위치(오차 약 ${Math.round(pos.coords.accuracy)}m)`, false),
-    (err) => manual(err.code === 1 ? '위치 권한이 거부되었습니다.' : '위치를 확인하지 못했습니다.'),
-    { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+    (pos) => {
+      clearInterval(tick);
+      const c = { lat: pos.coords.latitude, lon: pos.coords.longitude,
+                  acc: Math.round(pos.coords.accuracy), t: Date.now() };
+      try { localStorage.setItem(CACHE, JSON.stringify(c)); } catch (e) {}
+      render(c, `현재 위치(오차 약 ${c.acc}m)`, false);
+    },
+    (err) => {
+      clearInterval(tick);
+      manual(err.code === 1 ? '위치 권한이 거부되었습니다.' : '위치를 확인하지 못했습니다.');
+    },
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: TTL }
   );
 })();
 </script>
