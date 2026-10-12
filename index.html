@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOON</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f4f7; --card: #ffffff; --text: #1a1a1a; --muted: #6b7280;
+    --line: #e3e7ee; --brand: #1f5fa8; --brand-dark: #163f70; --tint: #eef4ff;
+    --warn-bg: #fff6e5; --warn: #8a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1420; --card: #171e2c; --text: #e8ecf3; --muted: #9aa4b5;
+      --line: #273145; --brand: #5b9be0; --brand-dark: #3f7fc4; --tint: #1b2a42;
+      --warn-bg: #3a2c10; --warn: #f0c46a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    background: #1f5fa8; color: #fff; padding: 18px 24px;
+    font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; letter-spacing: .3px;
+  }
+  main { max-width: 640px; margin: 32px auto; padding: 0 16px; }
+  .card { background: var(--card); padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+  .status { padding: 14px 16px; background: var(--tint); font-size: 15px; margin-bottom: 20px; }
+  .status.warn { background: var(--warn-bg); color: var(--warn); }
+  .badge { display: inline-block; font-size: 12px; padding: 1px 6px; margin-left: 6px;
+           border: 1px solid currentColor; vertical-align: 1px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--line); }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  [hidden] { display: none !important; }
+  tr.pick td { font-weight: 700; color: var(--brand); }
+  tr.off td { color: var(--muted); }
+  td a { color: var(--brand); font-weight: 600; }
+  .actions { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+  button, .btn {
+    font: inherit; font-size: 15px; padding: 10px 18px; border: 0; cursor: pointer;
+    background: var(--brand); color: #fff; text-decoration: none;
+  }
+  button:hover, .btn:hover { background: var(--brand-dark); }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  details { margin-top: 24px; font-size: 14px; color: var(--muted); }
+  details a { color: var(--brand); margin-right: 10px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin: 24px 0; }
+</style>
+</head>
+<body>
+<header>DOON</header>
+<main>
+  <div class="card">
+    <h1>가까운 PoP로 연결합니다</h1>
+    <p class="sub">브라우저 위치로 가장 가까운 지역 PoP를 고릅니다. 위치는 이 페이지 안에서만 쓰이고 서버로 보내지 않습니다.</p>
+
+    <div id="status" class="status">위치를 확인하는 중입니다…</div>
+
+    <table>
+      <thead><tr><th>PoP</th><th class="num">거리</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="actions" id="actions" hidden>
+      <a class="btn" id="go" href="#">바로 연결</a>
+      <button class="ghost" id="stop">자동 이동 멈추기</button>
+    </div>
+
+    <details>
+      <summary>다른 위치에서 접속한 것처럼 보기 (시연용)</summary>
+      <p id="places"></p>
+    </details>
+  </div>
+</main>
+<footer>K-디지털 챌린지: 넷 챌린지 캠프 시즌13 · Team Doon</footer>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const cfg = await (await fetch('pops.json', { cache: 'no-store' })).json();
+  const pops = cfg.pops;
+  const live = pops.filter((p) => p.enabled && p.url);
+  let timer = null;
+
+  // 시연용 위치 목록
+  $('places').innerHTML = Object.entries(cfg.places)
+    .map(([k, v]) => `<a href="?loc=${k}">${v.name}</a>`).join('');
+
+  function km(lat1, lon1, lat2, lon2) {
+    const r = Math.PI / 180;
+    const a = Math.sin((lat2 - lat1) * r / 2) ** 2 +
+      Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(a));
+  }
+
+  function render(from, label, simulated) {
+    const ranked = pops
+      .map((p) => ({ ...p, d: from ? km(from.lat, from.lon, p.lat, p.lon) : null }))
+      .sort((a, b) => (a.d ?? 0) - (b.d ?? 0));
+    const pick = ranked.find((p) => p.enabled && p.url);
+
+    $('rows').innerHTML = ranked.map((p) => {
+      const cls = p === pick ? 'pick' : (p.enabled && p.url ? '' : 'off');
+      const tag = p.enabled && p.url ? '' : `<span class="badge">${p.note || '비활성'}</span>`;
+      const dist = p.d == null ? '-' : `${p.d < 10 ? p.d.toFixed(1) : Math.round(p.d)} km`;
+      return `<tr class="${cls}"><td>${p.name}${tag}</td><td class="num">${dist}</td></tr>`;
+    }).join('');
+
+    const sim = simulated ? '<span class="badge">시뮬레이션</span>' : '';
+    $('status').className = 'status';
+    $('status').innerHTML = `${label}${sim} → <b>${pick.name} PoP</b>로 연결합니다<span id="cd"> · <span id="count">3</span>초 후 이동</span>`;
+    go(pick);
+  }
+
+  function go(pop) {
+    $('go').href = pop.url;
+    $('actions').hidden = false;
+    let n = 3;
+    clearInterval(timer);
+    timer = setInterval(() => {
+      n -= 1;
+      if ($('count')) $('count').textContent = n;
+      if (n <= 0) { clearInterval(timer); location.href = pop.url; }
+    }, 1000);
+  }
+
+  $('stop').onclick = () => {
+    clearInterval(timer);
+    if ($('cd')) $('cd').remove();
+    $('stop').hidden = true;
+  };
+
+  function manual(reason) {
+    $('status').className = 'status warn';
+    $('status').textContent = `${reason} 연결할 PoP를 직접 고르세요.`;
+    $('rows').innerHTML = live.map((p) =>
+      `<tr><td><a href="${p.url}">${p.name} PoP</a></td><td class="num">-</td></tr>`).join('');
+  }
+
+  // ?pop=pop-daejeon : 지정한 PoP로 바로 연결
+  const forced = live.find((p) => p.id === params.get('pop'));
+  if (forced) { location.replace(forced.url); return; }
+
+  // ?loc=busan : 그 지역에서 접속한 것으로 계산
+  const place = cfg.places[params.get('loc')];
+  if (place) { render(place, `${place.name}에서 접속`, true); return; }
+
+  if (!window.isSecureContext || !navigator.geolocation) {
+    manual('이 페이지는 HTTPS에서만 위치를 확인할 수 있습니다.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => render({ lat: pos.coords.latitude, lon: pos.coords.longitude },
+                    `현재 위치(오차 약 ${Math.round(pos.coords.accuracy)}m)`, false),
+    (err) => manual(err.code === 1 ? '위치 권한이 거부되었습니다.' : '위치를 확인하지 못했습니다.'),
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+  );
+})();
+</script>
+</body>
+</html>
