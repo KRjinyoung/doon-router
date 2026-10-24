@@ -5,9 +5,9 @@
       "name": "판교",
       "lat": 37.402,
       "lon": 127.1086,
-      "url": "http://10.246.246.19:13198/",
+      "url": "http://localhost:13198/",
       "enabled": true,
-      "note": "KOREN 사설망. SOCKS 터널로만 접속 가능"
+      "note": "KOREN 사설망. ssh -L 13198 터널로 접속"
     },
     {
       "id": "pop-daejeon",
