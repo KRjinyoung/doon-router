@@ -11,4 +11,4 @@ DOON 공정 티켓팅의 지역 PoP 라우터.
 
 위치 권한은 HTTPS에서만 동작하므로 GitHub Pages로 배포한다.
 
-본 서비스 저장소: DOON (K-디지털 챌린지: 넷 챌린지 캠프 시즌13 · Team Doon)
+본 서비스 저장소: [doon-fair-ticketing](https://github.com/KRjinyoung/doon-fair-ticketing) (K-디지털 챌린지: 넷 챌린지 캠프 시즌13 · Team Doon)
